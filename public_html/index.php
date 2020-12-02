@@ -1,12 +1,84 @@
 <?php
 include('../inc/head.php');
+
+
+
+//check if game is valid
+$isMultiplayer = false;
+if(isset($_GET['session'])&&isset($_GET['ourSymbol'])&&isset($_GET['ourColor'])) {
+  $id = $_GET['session'];
+  $ourSymbol = $_GET['ourSymbol'];
+  $ourColor = $_GET['ourColor'];
+
+  if($ourSymbol == "x")
+    $ourSymbol = "o";
+  else
+    $ourSymbol = "x";
+  if($ourColor == "red")
+    $ourColor = "black";
+  else
+    $ourColor = "red";
+
+  $GameInfo = $conn->prepare("select * from games where id = :id ");
+  $GameInfo->bindParam(":id",$id);
+  $GameInfo->execute();
+
+  $count = $GameInfo->rowCount();
+
+  if($count > 0 ){
+    $isMultiplayer = true;
+
+    echo <<<HTML
+    <script type="text/javascript">
+      $(document).ready(()=>{
+        ourSymbol = "$ourSymbol"
+        ourColor = "$ourColor"
+        curMode = 2
+        gameID = $id
+
+        $('#thinkText').html("Waiting for other player...")
+
+        function checkForMove() {
+            setTimeout(function () {
+                // do a get request $.get to server to ask for move variable from SQL
+                if (allowWaitForMove) {
+                    $.get("/api.php?getCurrentMove_=" + gameID, (move) => {
+                        if (move != lastMove) {
+                            var theirSymbol = "x"
+                            if (ourSymbol == "x")
+                                theirSymbol = "o"
+                            var theirColor = "red"
+                            if (ourColor == "red")
+                                theirColor = "black"
+
+                            var arr = move.split("")
+                            $(`img[data-cell="`+arr[0]+arr[1]+`"]`).attr("src", `/assets/img/`+theirSymbol+`_`+theirColor+`.png`)
+                            lastMove = move
+
+                            checkGameWon()
+
+                            $('#thinking').addClass("d-none")
+                        }
+                    })
+                }
+
+                checkForMove()
+            }, 1000)
+        }
+        checkForMove()
+      })
+    </script>
+HTML;
+  }
+}
+
 ?>
 
 <div class="container">
   <div class="bg-light w-100 mt-5 p-4 py-3 rounded">
     <p class="h1 text-center mb-0 font-weight-bold mt-3">Welcome to Tic Tac Toe</p>
-
-    <div id="symbol">
+    
+    <div id="symbol" <?php if($isMultiplayer) {?>class="d-none"<?php } ?>> 
       <p class="h3 text-center mb-4">Select your Piece!</p>
 
       <div class="d-flex align-items-center justify-content-center">
@@ -23,14 +95,19 @@ include('../inc/head.php');
       <p class="h3 text-center mb-4">Go up against your friend or a robot?</p>
 
       <div class="row">
-        <div class="col-md-6 col-12">
+        <div class="col-md-4 col-12">
           <div id="pvp" class="btn btn-light cursor-pointer px-4 w-100">
-            <p class="h1 mb-1 text-center">PvP</p>
+            <p class="h1 mb-1 text-center">Local Play</p>
           </div>
         </div>
-        <div class="col-md-6 col-12">
+        <div class="col-md-4 col-12">
           <div id="robot" class="btn btn-light cursor-pointer px-4 w-100">
-            <p class="h1 mb-1 text-center">Robot</p>
+            <p class="h1 mb-1 text-center">vsRobot</p>
+          </div>
+        </div>
+        <div class="col-md-4 col-12">
+          <div id="multiplayer" class="btn btn-light cursor-pointer px-4 w-100">
+            <p class="h1 mb-1 text-center">Multiplayer</p>
           </div>
         </div>
       </div>
@@ -58,11 +135,11 @@ include('../inc/head.php');
       </div>
     </div>
   </div>
-  <div id="gameboard" class="bg-light w-100 my-4 px-4 pt-5 pb-3 rounded align-items-center flex-column d-none">
+<div id="gameboard" class="bg-light w-100 my-4 px-4 pt-5 pb-3 rounded align-items-center flex-column <?php if(!$isMultiplayer) {?>d-none<?php } else { ?>d-flex<?php } ?>">
     <div class="bg-danger w-75 position-relative rounded">
       <div id="thinking" class="spinner-wrapper d-none">
         <div class="w-100 d-flex justify-content-center align-items-center flex-column">
-        <p class="text-white h2 font-weight-bold mb-4">Thinking...</p>
+        <p id="thinkText" class="text-white h2 font-weight-bold mb-4">Thinking...</p>
           <div class="spinner-grow text-white" role="status" style="width:3rem;height:3rem;"></div>
         </div>
       </div>
