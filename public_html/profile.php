@@ -7,18 +7,15 @@ if(!isset($_SESSION['uid'])) {
 }
 ?>
 <body>
-		<div class="container mt-5 d-flex justify-content-center">
-			<div class="d-flex align-items-center">
-				<div class="image"> <img src="/assets/img/pfp/<?=$UserInfo['pfp']?>.png"  class = "img-responsive"  class="rounded" width="155"> </div>
-				<div class="ml-3 w-100">
-					<a class="nav-item">
-						<a class="text-white font-weight-bold" href="/profile.php"><?=$UserInfo['username'] ?></i></a>
-					</li>
-					<div class="p-2 mt-2 bg-primary d-flex justify-content-between rounded text-white stats">
-						<div class="d-flex flex-column"> 
-						<div class="Wins">Wins <?=$UserInfo['wins']?>
-						</span>
-					</div>
+	<div class="container mt-5 d-flex justify-content-center">
+		<div class="d-flex bg-light p-3 rounded">
+			<div class="image">
+				<img src="/assets/img/pfp/<?=$UserInfo['pfp']?>.png"  class="img-responsive" class="rounded" width="155">
+			</div>
+			<div class="ml-3">
+				<p class="font-weight-bold h4"><?=$UserInfo['username'] ?></i></p>
+				<p>Wins <?=$UserInfo['wins']?></p>
+				<p>Keep up the grind and get those high scores!</p>
 			</div>
 		</div>
 	</div>
